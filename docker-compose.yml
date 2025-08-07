@@ -1,0 +1,74 @@
+
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: soulsync-db
+    environment:
+      POSTGRES_DB: soulsync_db
+      POSTGRES_USER: soulsync_user
+      POSTGRES_PASSWORD: soulsync_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - soulsync-network
+
+  # Backend API Server
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: soulsync-backend
+    environment:
+      NODE_ENV: development
+      PORT: 5001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: soulsync_db
+      DB_USER: soulsync_user
+      DB_PASSWORD: soulsync_password
+      JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
+      JWT_REFRESH_SECRET: your-refresh-secret-key
+      CORS_ORIGIN: http://localhost:5173
+    ports:
+      - "5001:5001"
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend:/app:delegated
+      - backend_node_modules:/app/node_modules
+    networks:
+      - soulsync-network
+    command: npm run dev
+
+  # Frontend React App
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: soulsync-frontend
+    environment:
+      VITE_API_URL: http://localhost:5001/api
+      VITE_APP_NAME: SoulSync
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app:delegated
+      - frontend_node_modules:/app/node_modules
+    networks:
+      - soulsync-network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  backend_node_modules:
+  frontend_node_modules:
+
+networks:
+  soulsync-network:
+    driver: bridge 

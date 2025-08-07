@@ -1,0 +1,156 @@
+// Prisma schema for SoulSync Dating App
+// Database: PostgreSQL (Vercel/Prisma Accelerate compatible)
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["soulsync", "public"]
+}
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String
+  name        String
+  age         Int?
+  bio         String?
+  location    String?
+  interests   String[]
+  photos      String[]
+  isVerified  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  matchesInitiated Match[] @relation("UserMatchesInitiated")
+  matchesReceived  Match[] @relation("UserMatchesReceived")
+  messagesSent     Message[] @relation("MessageSender")
+  messagesReceived Message[] @relation("MessageReceiver")
+  answers          UserAnswer[]
+  subscriptions    Subscription[]
+  payments         Payment[]
+  refreshTokens    RefreshToken[]
+
+  @@schema("soulsync")
+}
+
+model Match {
+  id                 String   @id @default(uuid())
+  userInitiatorId    String
+  userReceiverId     String
+  compatibilityScore Float?
+  status             String   @default("pending") // pending, accepted, rejected
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  
+  // Relations
+  userInitiator      User     @relation("UserMatchesInitiated", fields: [userInitiatorId], references: [id])
+  userReceiver       User     @relation("UserMatchesReceived", fields: [userReceiverId], references: [id])
+
+  @@schema("soulsync")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  senderId  String
+  receiverId String
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  sender    User     @relation("MessageSender", fields: [senderId], references: [id])
+  receiver  User     @relation("MessageReceiver", fields: [receiverId], references: [id])
+
+  @@schema("soulsync")
+}
+
+model Question {
+  id        String   @id @default(uuid())
+  question  String
+  category  String   // personality, compatibility, lifestyle, values, communication, relationship
+  type      String   // scale, multiple, text
+  options   Json?    // For multiple choice questions
+  minValue  Int?     // For scale questions
+  maxValue  Int?     // For scale questions
+  weight    Int      @default(1)
+  emoji     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  answers   UserAnswer[]
+
+  @@schema("soulsync")
+}
+
+model UserAnswer {
+  id         String   @id @default(uuid())
+  userId     String
+  questionId String
+  answer     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  // Relations
+  user       User     @relation(fields: [userId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id])
+  
+  @@unique([userId, questionId])
+  @@schema("soulsync")
+}
+
+model Subscription {
+  id                    String    @id @default(uuid())
+  userId                String
+  plan                  String    // free, premium, vip
+  status                String    @default("active") // active, cancelled, expired
+  paypalSubscriptionId  String?
+  expiresAt             DateTime
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  // Relations
+  user                  User      @relation(fields: [userId], references: [id])
+
+  @@schema("soulsync")
+}
+
+model Payment {
+  id          String   @id @default(uuid())
+  userId      String
+  amount      Float
+  currency    String
+  status      String   // pending, completed, failed
+  provider    String   // coinbase, stripe, paypal
+  providerId  String?  // Payment provider's transaction ID
+  metadata    Json?    // Additional payment data
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@schema("soulsync")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@schema("soulsync")
+} 
