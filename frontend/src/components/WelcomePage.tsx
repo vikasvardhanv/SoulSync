@@ -1,55 +1,20 @@
-import React, { useState } from 'react';
+// frontend/src/components/WelcomePage.tsx
+import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { Heart, Sparkles, Brain, ChevronRight, Users, Coffee, Star } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 
 const WelcomePage = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [referralCode, setReferralCode] = useState('');
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { signIn, signUp } = useAuthStore();
+  const { user } = useAuthStore();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      if (isLogin) {
-        const { error } = await signIn(email, password);
-        if (error) {
-          alert(error.message || 'Login failed');
-        } else {
-          navigate('/dashboard');
-        }
-      } else {
-        const { error } = await signUp(email, password, name);
-        if (error) {
-          alert(error.message || 'Signup failed');
-        } else {
-          alert('Account created successfully! Please check your email to verify your account.');
-          navigate('/login');
-        }
-      }
-    } catch (error: any) {
-      alert('An unexpected error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Check for referral code in URL
+  // Redirect if already logged in
   React.useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const ref = urlParams.get('ref');
-    if (ref) {
-      setReferralCode(ref);
+    if (user) {
+      navigate('/dashboard');
     }
-  }, []);
+  }, [user, navigate]);
 
   return (
     <div className="min-h-screen warm-gradient flex items-center justify-center p-4 relative overflow-hidden">
@@ -128,130 +93,31 @@ const WelcomePage = () => {
           </motion.div>
         </div>
 
-        {/* Auth Form */}
+        {/* CTA Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1 }}
-          className="friendly-card p-8"
+          transition={{ delay: 1.2 }}
+          className="friendly-card p-8 space-y-4"
         >
-          <div className="flex mb-6 bg-warm-100 rounded-xl p-1">
-            <button
-              onClick={() => setIsLogin(true)}
-              className={`flex-1 py-3 px-4 rounded-lg transition-all font-medium ${
-                isLogin 
-                  ? 'bg-gradient-to-r from-coral-400 to-peach-400 text-white shadow-coral' 
-                  : 'text-warm-600 hover:text-warm-800'
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => setIsLogin(false)}
-              className={`flex-1 py-3 px-4 rounded-lg transition-all font-medium ${
-                !isLogin 
-                  ? 'bg-gradient-to-r from-coral-400 to-peach-400 text-white shadow-coral' 
-                  : 'text-warm-600 hover:text-warm-800'
-              }`}
-            >
-              Sign Up
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <div>
-                <input
-                  type="text"
-                  placeholder="Your Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="friendly-input w-full"
-                  required
-                />
-              </div>
-            )}
-            
-            <div>
-              <input
-                type="email"
-                placeholder="Email Address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="friendly-input w-full"
-                required
-              />
-            </div>
-            
-            {!isLogin && (
-              <div>
-                <input
-                  type="text"
-                  placeholder="Referral Code (Optional)"
-                  value={referralCode}
-                  onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                  className="friendly-input w-full"
-                />
-                {referralCode && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-2 flex items-center gap-2 text-mint-600 text-sm"
-                  >
-                    <Users className="w-4 h-4" />
-                    <span>50% discount applied! 🎉</span>
-                  </motion.div>
-                )}
-              </div>
-            )}
-            
-            <div>
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="friendly-input w-full"
-                required
-              />
-            </div>
-
+          <Link to="/signup">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              type="submit"
-              disabled={loading}
-              className="friendly-button w-full flex items-center justify-center gap-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="friendly-button w-full flex items-center justify-center gap-2 font-semibold"
             >
-              {loading ? (
-                <span className="loading-dots">Processing</span>
-              ) : (
-                <>
-                  {isLogin ? 'Sign In' : 'Start Your Journey'}
-                  <ChevronRight className="w-5 h-5" />
-                </>
-              )}
+              Start Your Journey
+              <ChevronRight className="w-5 h-5" />
             </motion.button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-warm-600 text-sm leading-relaxed">
-              Ready to meet your perfect match?
-              <br />
-              <span className="text-coral-500 font-medium">Our AI makes the difference.</span>
-            </p>
-          </div>
-
-          {/* Demo Mode */}
-          <div className="mt-6 pt-6 border-t border-warm-200">
-            <p className="text-warm-500 text-sm text-center mb-3">
-              Want to try without signing up?
-            </p>
+          </Link>
+          
+          <div className="text-center">
+            <span className="text-warm-600">Already have an account? </span>
             <Link
-              to="/personality-quiz"
-              className="block w-full text-center py-3 px-4 border-2 border-coral-200 rounded-xl text-coral-600 hover:bg-coral-50 hover:border-coral-300 transition-all font-medium"
+              to="/login"
+              className="text-coral-500 hover:text-coral-600 font-medium transition-colors"
             >
-              Try Demo Mode
+              Sign In
             </Link>
           </div>
         </motion.div>
@@ -260,7 +126,7 @@ const WelcomePage = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.2 }}
+          transition={{ delay: 1.4 }}
           className="text-center mt-6 text-xs text-warm-500"
         >
           <p>By continuing, you agree to our Terms & Privacy Policy</p>
