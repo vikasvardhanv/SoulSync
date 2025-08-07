@@ -2,13 +2,12 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
-
+# Copy prisma schema before install so prisma generate works
+COPY prisma ./prisma
 # Install dependencies (use install instead of ci for development)
 RUN npm install
-
-# Copy source code
+# Copy rest of source code
 COPY . .
 
 # Create non-root user

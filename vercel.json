@@ -1,22 +1,17 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "builds": [
+  "functions": {
+    "api/index.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "rewrites": [
     {
-      "src": "api/index.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["backend/**"],
-        "runtime": "nodejs18.x"
-      }
+      "source": "/(.*)",
+      "destination": "backend/src/server.js"
     }
   ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "api/index.js"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
-} 
+  "installCommand": "npm install --workspace=backend",
+  "buildCommand": "npm run build --workspace=backend"
+}

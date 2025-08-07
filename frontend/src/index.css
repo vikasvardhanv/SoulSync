@@ -87,12 +87,13 @@ body {
 }
 
 .friendly-input {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   border: 2px solid rgba(255, 154, 139, 0.2);
   border-radius: 12px;
-  padding: 12px 16px;
   font-size: 16px;
   transition: all 0.3s ease;
+  line-height: 1.5;
+  min-height: 48px;
 }
 
 .friendly-input:focus {
@@ -100,6 +101,60 @@ body {
   border-color: var(--soft-coral);
   box-shadow: 0 0 0 3px rgba(255, 154, 139, 0.1);
   background: white;
+}
+
+.friendly-input::placeholder {
+  color: #9ca3af;
+  opacity: 1;
+  font-size: 15px;
+}
+
+/* Ensure icons don't interfere with text */
+.friendly-input[type="text"],
+.friendly-input[type="email"],
+.friendly-input[type="password"],
+.friendly-input[type="number"] {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+/* Fix textarea specific styling */
+textarea.friendly-input {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  line-height: 1.6;
+  min-height: 80px;
+}
+
+/* Ensure proper z-index for icons */
+.friendly-input + * {
+  z-index: 10;
+}
+
+/* Remove any conflicting label animations */
+.friendly-input:focus + label,
+.friendly-input:not(:placeholder-shown) + label {
+  opacity: 0;
+}
+
+/* Password visibility button styling */
+input[type="password"] + button,
+input[type="text"] + button {
+  z-index: 20;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+/* Fix for number input arrows */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 /* Text styles */
