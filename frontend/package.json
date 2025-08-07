@@ -1,13 +1,14 @@
 {
-  "name": "soulsync-dating-app",
+  "name": "soulsync-frontend",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@paypal/react-paypal-js": "^8.8.3",
@@ -17,12 +18,13 @@
     "lucide-react": "^0.344.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.1",
-    "react-hot-toast": "^2.4.1",
+    "react-hot-toast": "^2.5.2",
+    "react-router-dom": "^6.30.1",
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@eslint/js": "^9.9.1",
+    "@rollup/rollup-linux-x64-gnu": "^4.9.0",
+    "@types/node": "^20.11.20",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
@@ -30,12 +32,16 @@
     "eslint": "^9.9.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.11",
-    "globals": "^15.9.0",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.5.3",
-    "typescript-eslint": "^8.3.0",
-    "vite": "^5.4.2",
-    "@types/node": "^20.11.20"
+    "vite": "^5.4.19"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-darwin-x64": "^4.9.0",
+    "@rollup/rollup-darwin-arm64": "^4.9.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

@@ -1,7 +1,8 @@
+// backend/src/middleware/auth.js - Fixed version
 import jwt from 'jsonwebtoken';
-import { getRow } from '../database/connection.js';
 import prisma from '../database/connection.js';
 
+// Single declaration of authenticateToken
 export const authenticateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
@@ -17,10 +18,29 @@ export const authenticateToken = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Get user from database to ensure they still exist and are active
-    const user = await getRow(
-      'SELECT id, email, name, age, bio, location, interests, photos, is_verified, is_active FROM users WHERE id = $1',
-      [decoded.userId]
-    );
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        age: true,
+        bio: true,
+        location: true,
+        interests: true,
+        photos: true,
+        isVerified: true,
+        isActive: true
+      }
+    });
+
+    // Map Prisma field names to expected field names for backward compatibility
+    if (user) {
+      user.is_verified = user.isVerified;
+      user.is_active = user.isActive;
+      delete user.isVerified;
+      delete user.isActive;
+    }
 
     if (!user || !user.is_active) {
       return res.status(401).json({
@@ -50,6 +70,7 @@ export const authenticateToken = async (req, res, next) => {
       hasPremium: !!hasPremium,
       subscription: subscription || null
     };
+    
     next();
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
@@ -85,10 +106,29 @@ export const optionalAuth = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    const user = await getRow(
-      'SELECT id, email, name, age, bio, location, interests, photos, is_verified, is_active FROM users WHERE id = $1',
-      [decoded.userId]
-    );
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        age: true,
+        bio: true,
+        location: true,
+        interests: true,
+        photos: true,
+        isVerified: true,
+        isActive: true
+      }
+    });
+
+    // Map Prisma field names to expected field names
+    if (user) {
+      user.is_verified = user.isVerified;
+      user.is_active = user.isActive;
+      delete user.isVerified;
+      delete user.isActive;
+    }
 
     if (user && user.is_active) {
       // Check if user has an active premium subscription
@@ -156,4 +196,4 @@ export const requireProfile = (req, res, next) => {
   }
 
   next();
-}; 
+};
