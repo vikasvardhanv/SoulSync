@@ -6,6 +6,14 @@ import path from 'path';
 // Load environment variables
 dotenv.config();
 
+// Set critical environment variables for Vercel deployment
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = "postgres://41ad1dc9be4d79fa016829b50e2843b60021f1e925d0766712cf6ac359fb5658:sk_PmTdHGZVXUxVAexGZlGBm@db.prisma.io:5432/postgres?sslmode=require";
+}
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = "lcgl06w7dcq7augpesgzsy";
+}
+
 const app = express();
 
 // Basic middleware
