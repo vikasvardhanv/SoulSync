@@ -74,6 +74,18 @@ app.get('/test', (req, res) => {
   });
 });
 
+// Simple test upload endpoint to debug routing
+app.post('/images/upload', (req, res) => {
+  console.log('🎯 Direct upload endpoint hit!');
+  res.status(200).json({
+    success: true,
+    message: 'Direct upload endpoint working',
+    method: req.method,
+    path: req.path,
+    originalUrl: req.originalUrl
+  });
+});
+
 // Initialize routes
 const initializeRoutes = async () => {
   try {
