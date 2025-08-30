@@ -74,6 +74,9 @@ function AppContent() {
               </ProtectedRoute>
             } />
             
+            {/* Redirect /app to /dashboard for backward compatibility */}
+            <Route path="/app" element={<Navigate to="/dashboard" replace />} />
+            
             {/* Legacy Routes (Protected) */}
             <Route path="/personality-quiz" element={
               <ProtectedRoute>

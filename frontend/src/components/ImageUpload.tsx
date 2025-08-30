@@ -1,12 +1,12 @@
-// frontend/src/components/ImageUpload.tsx
+// frontend/src/components/ImageUpload.tsx - Updated for base64 upload
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Loader, AlertCircle, CheckCircle } from 'lucide-react';
-import { imagesAPI } from '../services/api';
 import toast from 'react-hot-toast';
+import api from '../services/api';
 
 interface ImageUploadProps {
-  photos: string[]; // Array of image IDs or data URLs
+  photos: string[]; // Array of image data URLs
   onPhotosUpdate: (photos: string[]) => void;
   maxPhotos?: number;
   minPhotos?: number;
@@ -36,14 +36,15 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       return 'Only JPEG, PNG, and WebP images are allowed';
     }
 
-    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
     if (file.size > MAX_FILE_SIZE) {
       const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
-      return `File size (${fileSizeMB}MB) exceeds 10MB limit`;
+      return `File size (${fileSizeMB}MB) exceeds 5MB limit`;
     }
 
     return null;
   };
+
 
   const handleFileSelect = async (files: FileList) => {
     if (files.length === 0) return;
@@ -69,22 +70,26 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         }
       }
 
-      // Upload files
+      // Upload files using FormData
       const uploadPromises = fileArray.map(async (file) => {
-        const formData = new FormData();
-        formData.append('image', file);
-
         try {
-          const response = await imagesAPI.uploadSingle(formData);
+          const formData = new FormData();
+          formData.append('image', file);
+          
+          const response = await api.post('/images/upload', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
           
           if (response.data.success) {
-            return response.data.data.imageUrl; // This will be a data URL for immediate display
+            return response.data.data.imageUrl;
           } else {
             throw new Error(response.data.message || 'Upload failed');
           }
         } catch (uploadError: any) {
           console.error(`Upload error for file ${file.name}:`, uploadError);
-          toast.error(`Failed to upload ${file.name}`);
+          toast.error(`Failed to upload ${file.name}: ${uploadError.response?.data?.message || uploadError.message}`);
           throw uploadError;
         }
       });
@@ -121,11 +126,6 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
   const deletePhoto = async (photo: string, index: number) => {
     try {
-      // If it's an image ID (not a data URL), use the delete API
-      if (!photo.startsWith('data:')) {
-        await imagesAPI.deletePhoto({ imageId: photo });
-      }
-      
       const newPhotos = photos.filter((_, i) => i !== index);
       onPhotosUpdate(newPhotos);
       toast.success('Photo deleted successfully');
@@ -195,7 +195,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
             <div className="bg-warm-100 rounded-lg p-3 mt-2">
               <p className="text-xs text-warm-600 font-medium mb-1">📸 Photo Tips:</p>
               <ul className="text-xs text-warm-600 space-y-1">
-                <li>• Maximum 10MB per photo</li>
+                <li>• Maximum 5MB per photo</li>
                 <li>• JPEG, PNG, or WebP formats</li>
                 <li>• High quality photos get more matches!</li>
               </ul>

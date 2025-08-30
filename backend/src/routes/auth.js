@@ -52,8 +52,26 @@ const validateRegistration = [
     .withMessage('Maximum 6 photos allowed'),
   body('photos.*')
     .optional()
-    .isURL()
-    .withMessage('Each photo must be a valid URL')
+    .custom((value) => {
+      // Allow regular URLs or data URLs (for base64 images)
+      if (typeof value !== 'string') {
+        throw new Error('Photo must be a string');
+      }
+      
+      // Check if it's a data URL (base64)
+      if (value.startsWith('data:image/')) {
+        return true;
+      }
+      
+      // Check if it's a regular URL
+      try {
+        new URL(value);
+        return true;
+      } catch {
+        throw new Error('Each photo must be a valid URL or data URL');
+      }
+    })
+    .withMessage('Each photo must be a valid URL or data URL')
 ];
 
 // Generate JWT tokens
@@ -100,12 +118,8 @@ const saveRefreshToken = async (userId, refreshToken) => {
 // User registration with email verification
 router.post('/register', validateRegistration, async (req, res, next) => {
   try {
-    console.log('=== REGISTRATION REQUEST ===');
-    console.log('Body:', JSON.stringify(req.body, null, 2));
-
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log('Validation errors:', errors.array());
       return res.status(400).json({
         success: false,
         message: 'Please fix the following errors',
@@ -194,9 +208,6 @@ router.post('/register', validateRegistration, async (req, res, next) => {
     // Generate auth tokens (user can use app but with limited features until verified)
     const { accessToken, refreshToken } = generateTokens(user.id);
     await saveRefreshToken(user.id, refreshToken);
-
-    console.log('Registration completed successfully');
-    console.log('========================');
 
     res.status(201).json({
       success: true,

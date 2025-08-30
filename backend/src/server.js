@@ -36,8 +36,6 @@ const staticPath = path.join(__dirname, '../frontend/dist');
 // Verify static path exists
 if (!existsSync(staticPath)) {
   console.error(`❌ Static path does not exist: ${staticPath}`);
-} else {
-  console.log(`✅ Serving static files from: ${staticPath}`);
 }
 
 // Security middleware
@@ -118,39 +116,28 @@ app.use('/', express.static(staticPath, {
   }
 }));
 
-// API routes - Import routes dynamically
-const initializeRoutes = async () => {
-  try {
-    console.log('🔄 Initializing API routes...');
-    
-    const authRoutes = await import('./routes/auth.js');
-    const userRoutes = await import('./routes/users.js');
-    const questionRoutes = await import('./routes/questions.js');
-    const matchRoutes = await import('./routes/matches.js');
-    const messageRoutes = await import('./routes/messages.js');
-    const subscriptionRoutes = await import('./routes/subscriptions.js');
-    const paymentRoutes = await import('./routes/payments.js');
-    const imageRoutes = await import('./routes/images.js');
+// Import routes
+import authRoutes from './routes/auth.js';
+import userRoutes from './routes/users.js';
+import questionRoutes from './routes/questions.js';
+import matchRoutes from './routes/matches.js';
+import messageRoutes from './routes/messages.js';
+import subscriptionRoutes from './routes/subscriptions.js';
+import paymentRoutes from './routes/payments.js';
+import imageRoutes from './routes/images.js';
 
-    app.use('/api/auth', authRoutes.default);
-    app.use('/api/users', userRoutes.default);
-    app.use('/api/questions', questionRoutes.default);
-    app.use('/api/matches', matchRoutes.default);
-    app.use('/api/messages', messageRoutes.default);
-    app.use('/api/subscriptions', subscriptionRoutes.default);
-    app.use('/api/payments', paymentRoutes.default);
-    app.use('/api/images', imageRoutes.default);
-
-    console.log('✅ API routes initialized successfully');
-  } catch (error) {
-    console.error('❌ Failed to initialize routes:', error);
-    throw error;
-  }
-};
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/questions', questionRoutes);
+app.use('/api/matches', matchRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/images', imageRoutes);
 
 // SPA routing: Serve index.html for non-API, non-static routes
 app.get(/^(?!\/api\/|\/health|\/assets\/).*/, (req, res) => {
-  console.log(`Serving index.html for path: ${req.path}`);
   res.sendFile(path.join(staticPath, 'index.html'));
 });
 
@@ -160,21 +147,13 @@ app.use(notFound);
 // Global error handler
 app.use(errorHandler);
 
-// Initialize routes
-initializeRoutes()
-  .then(() => {
-    // Start the server
-    const PORT = process.env.PORT || 5001;
-    app.listen(PORT, () => {
-      console.log(`✅ SoulSync Backend server running on port ${PORT}`);
-      console.log(`🌐 Server URL: http://localhost:${PORT}`);
-      console.log(`🎉 API Base URL: http://localhost:${PORT}/api`);
-    });
-  })
-  .catch(error => {
-    console.error('❌ Failed to initialize server:', error);
-    process.exit(1);
-  });
+// Start the server
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => {
+  console.log(`✅ SoulSync Backend server running on port ${PORT}`);
+  console.log(`🌐 Server URL: http://localhost:${PORT}`);
+  console.log(`🎉 API Base URL: http://localhost:${PORT}/api`);
+});
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {

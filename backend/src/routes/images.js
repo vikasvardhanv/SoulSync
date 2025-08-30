@@ -18,12 +18,6 @@ const upload = multer({
     files: 1
   },
   fileFilter: (req, file, cb) => {
-    console.log('Processing file:', {
-      originalname: file.originalname,
-      mimetype: file.mimetype,
-      size: file.size
-    });
-    
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
@@ -44,21 +38,8 @@ const compressImage = (buffer, mimetype) => {
 
 // Upload single image - database storage
 router.post('/upload', optionalAuth, (req, res) => {
-  console.log('=== IMAGE UPLOAD REQUEST ===');
-  console.log('User:', req.user ? req.user.id : 'Anonymous');
-  console.log('Headers:', {
-    'content-type': req.headers['content-type'],
-    'content-length': req.headers['content-length']
-  });
-
   upload.single('image')(req, res, async (err) => {
     if (err) {
-      console.error('=== UPLOAD ERROR ===');
-      console.error('Error details:', {
-        message: err.message,
-        code: err.code
-      });
-      
       if (err instanceof multer.MulterError) {
         switch (err.code) {
           case 'LIMIT_FILE_SIZE':
@@ -110,7 +91,6 @@ router.post('/upload', optionalAuth, (req, res) => {
 
     try {
       if (!req.file) {
-        console.error('No file received in request');
         return res.status(400).json({
           success: false,
           message: 'No image file provided',
@@ -126,14 +106,6 @@ router.post('/upload', optionalAuth, (req, res) => {
       const base64Image = compressedBuffer.toString('base64');
       const dataUrl = `data:${req.file.mimetype};base64,${base64Image}`;
 
-      console.log('=== PROCESSING SUCCESS ===');
-      console.log('File processed:', {
-        originalname: req.file.originalname,
-        size: req.file.size,
-        mimetype: req.file.mimetype,
-        compressedSize: compressedBuffer.length
-      });
-
       try {
         // Save image to database
         const savedImage = await prisma.image.create({
@@ -146,8 +118,6 @@ router.post('/upload', optionalAuth, (req, res) => {
           }
         });
 
-        console.log('✅ Image saved to database with ID:', savedImage.id);
-
         // If user is authenticated, add to their photos array
         if (req.user) {
           try {
@@ -158,7 +128,6 @@ router.post('/upload', optionalAuth, (req, res) => {
 
             if (user) {
               if (user.photos.length >= 6) {
-                console.warn('Photo limit exceeded for user:', req.user.id);
                 // Delete the uploaded image since we can't use it
                 await prisma.image.delete({
                   where: { id: savedImage.id }
@@ -183,9 +152,6 @@ router.post('/upload', optionalAuth, (req, res) => {
                 where: { id: req.user.id },
                 data: { photos: updatedPhotos }
               });
-
-              console.log('✅ Photo added to user profile');
-              console.log('Total photos:', updatedPhotos.length);
             }
           } catch (dbError) {
             console.error('Error updating user profile:', dbError);
@@ -210,11 +176,7 @@ router.post('/upload', optionalAuth, (req, res) => {
         });
 
       } catch (dbError) {
-        console.error('=== DATABASE ERROR ===');
-        console.error('Database error details:', {
-          message: dbError.message,
-          code: dbError.code
-        });
+        console.error('Database error during image save:', dbError);
         
         res.status(500).json({
           success: false,
@@ -227,11 +189,7 @@ router.post('/upload', optionalAuth, (req, res) => {
       }
 
     } catch (error) {
-      console.error('=== PROCESSING ERROR ===');
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack
-      });
+      console.error('Image processing error:', error);
       
       res.status(500).json({
         success: false,
@@ -245,44 +203,41 @@ router.post('/upload', optionalAuth, (req, res) => {
   });
 });
 
-// Get image by ID
-router.get('/:imageId', async (req, res) => {
+// Test endpoint (must be before parameterized routes)
+router.get('/test', async (req, res) => {
   try {
-    const { imageId } = req.params;
-
-    const image = await prisma.image.findUnique({
-      where: { id: imageId },
-      select: {
-        data: true,
-        mimetype: true,
-        filename: true
-      }
-    });
-
-    if (!image) {
-      return res.status(404).json({
-        success: false,
-        message: 'Image not found'
-      });
+    // Test database connection
+    let databaseStatus = 'disconnected';
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      databaseStatus = 'connected';
+    } catch (dbError) {
+      console.error('Database test failed:', dbError);
+      databaseStatus = 'error: ' + dbError.message;
     }
 
-    // Return image as data URL
-    const dataUrl = `data:${image.mimetype};base64,${image.data}`;
-    
     res.json({
       success: true,
-      data: {
-        imageUrl: dataUrl,
-        filename: image.filename,
-        mimetype: image.mimetype
+      message: 'Images API test results (database storage)',
+      timestamp: new Date().toISOString(),
+      services: {
+        database: databaseStatus,
+        storage: 'database'
+      },
+      config: {
+        maxFileSize: '5MB',
+        allowedFormats: ['jpg', 'jpeg', 'png', 'webp'],
+        maxPhotos: 6,
+        storageType: 'database'
       }
     });
-
   } catch (error) {
-    console.error('Get image error:', error);
+    console.error('Health check failed:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve image'
+      message: 'Health check failed',
+      error: error.message,
+      timestamp: new Date().toISOString()
     });
   }
 });
@@ -393,8 +348,6 @@ router.delete('/delete', authenticateToken, [
       where: { id: imageId }
     });
 
-    console.log('✅ Image deleted:', imageId);
-
     res.json({
       success: true,
       message: 'Photo deleted successfully',
@@ -411,41 +364,44 @@ router.delete('/delete', authenticateToken, [
   }
 });
 
-// Test endpoint
-router.get('/test', async (req, res) => {
+// Get image by ID (must be last to avoid conflicts)
+router.get('/:imageId', async (req, res) => {
   try {
-    // Test database connection
-    let databaseStatus = 'disconnected';
-    try {
-      await prisma.$queryRaw`SELECT 1`;
-      databaseStatus = 'connected';
-    } catch (dbError) {
-      console.error('Database test failed:', dbError);
-      databaseStatus = 'error: ' + dbError.message;
-    }
+    const { imageId } = req.params;
 
-    res.json({
-      success: true,
-      message: 'Images API test results (database storage)',
-      timestamp: new Date().toISOString(),
-      services: {
-        database: databaseStatus,
-        storage: 'database'
-      },
-      config: {
-        maxFileSize: '5MB',
-        allowedFormats: ['jpg', 'jpeg', 'png', 'webp'],
-        maxPhotos: 6,
-        storageType: 'database'
+    const image = await prisma.image.findUnique({
+      where: { id: imageId },
+      select: {
+        data: true,
+        mimetype: true,
+        filename: true
       }
     });
+
+    if (!image) {
+      return res.status(404).json({
+        success: false,
+        message: 'Image not found'
+      });
+    }
+
+    // Return image as data URL
+    const dataUrl = `data:${image.mimetype};base64,${image.data}`;
+    
+    res.json({
+      success: true,
+      data: {
+        imageUrl: dataUrl,
+        filename: image.filename,
+        mimetype: image.mimetype
+      }
+    });
+
   } catch (error) {
-    console.error('Health check failed:', error);
+    console.error('Get image error:', error);
     res.status(500).json({
       success: false,
-      message: 'Health check failed',
-      error: error.message,
-      timestamp: new Date().toISOString()
+      message: 'Failed to retrieve image'
     });
   }
 });

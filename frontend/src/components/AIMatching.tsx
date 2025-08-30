@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Heart, Zap, Users, AlertCircle } from 'lucide-react';
+import { Brain, Heart, Zap, Users, AlertCircle, LogOut, User } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { usersAPI } from '../services/api';
+import { useAuthStore } from '../stores/authStore';
 
 // Define the user type based on backend response
 interface User {
@@ -25,6 +26,7 @@ const AIMatching = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { dispatch, state } = useApp();
+  const { user, signOut } = useAuthStore();
 
   const steps = useMemo(() => [
     { icon: Brain, text: "Analyzing your personality profile...", duration: 3000 },
@@ -94,6 +96,11 @@ const AIMatching = () => {
     compatibility: number;
     photo: string;
   }
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   useEffect(() => {
     const totalDuration = steps.reduce((sum, step) => sum + step.duration, 0);
@@ -202,7 +209,24 @@ const AIMatching = () => {
   // Show error state
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="min-h-screen warm-gradient flex items-center justify-center p-4 relative">
+        {/* Header with user info and logout */}
+        <div className="absolute top-4 right-4 flex items-center gap-4">
+          <div className="flex items-center gap-2 text-warm-800">
+            <div className="w-8 h-8 bg-gradient-to-r from-coral-400 to-peach-400 rounded-full flex items-center justify-center">
+              <User className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-medium">{user?.name || 'User'}</span>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-3 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-warm-700 hover:text-warm-900 hover:bg-white/30 transition-all"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-sm font-medium">Sign Out</span>
+          </button>
+        </div>
+
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -212,16 +236,16 @@ const AIMatching = () => {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring" }}
-            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-red-500 to-pink-600 rounded-full mb-6"
+            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-coral-400 to-peach-400 rounded-full mb-6 shadow-coral"
           >
             <AlertCircle className="w-10 h-10 text-white" />
           </motion.div>
 
-          <h1 className="text-3xl font-bold text-white mb-4">
+          <h1 className="text-3xl font-bold text-warm-800 mb-4">
             Oops! 😅
           </h1>
 
-          <p className="text-gray-300 text-lg mb-6">
+          <p className="text-warm-600 text-lg mb-6">
             {error}
           </p>
 
@@ -229,7 +253,7 @@ const AIMatching = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleRetry}
-            className="bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:shadow-lg transition-all"
+            className="friendly-button font-semibold px-8 py-3"
           >
             Try Again
           </motion.button>
@@ -239,7 +263,24 @@ const AIMatching = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen warm-gradient flex items-center justify-center p-4 relative">
+      {/* Header with user info and logout */}
+      <div className="absolute top-4 right-4 flex items-center gap-4">
+        <div className="flex items-center gap-2 text-warm-800">
+          <div className="w-8 h-8 bg-gradient-to-r from-coral-400 to-peach-400 rounded-full flex items-center justify-center">
+            <User className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-medium">{user?.name || 'User'}</span>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-3 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-warm-700 hover:text-warm-900 hover:bg-white/30 transition-all"
+        >
+          <LogOut className="w-4 h-4" />
+          <span className="text-sm font-medium">Sign Out</span>
+        </button>
+      </div>
+
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -255,7 +296,7 @@ const AIMatching = () => {
             rotate: { duration: 4, repeat: Infinity, ease: "linear" },
             scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
           }}
-          className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-full mb-8 relative"
+          className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-coral-400 via-peach-400 to-mint-400 rounded-full mb-8 relative shadow-coral"
         >
           <Heart className="w-12 h-12 text-white" fill="currentColor" />
           
@@ -288,7 +329,7 @@ const AIMatching = () => {
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-4"
+          className="text-4xl font-friendly font-bold text-warm-800 mb-4"
         >
           SoulSyncing You Now...
         </motion.h1>
@@ -297,7 +338,7 @@ const AIMatching = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="text-gray-300 text-lg mb-8 max-w-sm mx-auto"
+          className="text-warm-600 text-lg mb-8 max-w-sm mx-auto"
         >
           Your answers are being analyzed by our AI compatibility engine. We're finding someone who gets you. 💫
         </motion.p>
@@ -314,51 +355,53 @@ const AIMatching = () => {
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ 
-                  opacity: isActive || isCompleted ? 1 : 0.4,
+                  opacity: isActive || isCompleted ? 1 : 0.6,
                   x: 0,
                   scale: isActive ? 1.05 : 1
                 }}
                 transition={{ delay: index * 0.2 }}
-                className={`flex items-center gap-4 p-4 rounded-xl backdrop-blur-sm ${
+                className={`friendly-card p-4 ${
                   isActive 
-                    ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30' 
-                    : 'bg-white/5 border border-white/10'
+                    ? 'border-coral-300 bg-coral-50' 
+                    : 'border-peach-200 bg-white/80'
                 }`}
               >
-                <div className={`flex items-center justify-center w-12 h-12 rounded-full ${
-                  isActive || isCompleted 
-                    ? 'bg-gradient-to-r from-pink-500 to-purple-500' 
-                    : 'bg-white/10'
-                }`}>
-                  <StepIcon className="w-6 h-6 text-white" />
-                </div>
-                
-                <div className="flex-1 text-left">
-                  <p className={`font-medium ${
-                    isActive ? 'text-white' : 'text-gray-400'
+                <div className="flex items-center gap-4">
+                  <div className={`flex items-center justify-center w-12 h-12 rounded-full ${
+                    isActive || isCompleted 
+                      ? 'bg-gradient-to-r from-coral-400 to-peach-400' 
+                      : 'bg-warm-200'
                   }`}>
-                    {Step.text}
-                  </p>
-                </div>
+                    <StepIcon className="w-6 h-6 text-white" />
+                  </div>
+                  
+                  <div className="flex-1 text-left">
+                    <p className={`font-medium ${
+                      isActive ? 'text-warm-800' : 'text-warm-600'
+                    }`}>
+                      {Step.text}
+                    </p>
+                  </div>
 
-                {isActive && (
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-5 h-5 border-2 border-pink-400 border-t-transparent rounded-full"
-                  />
-                )}
+                  {isActive && (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-5 h-5 border-2 border-coral-400 border-t-transparent rounded-full"
+                    />
+                  )}
+                </div>
               </motion.div>
             );
           })}
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-white/10 rounded-full h-3 mb-4">
+        <div className="w-full bg-warm-200 rounded-full h-3 mb-4">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
-            className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 h-3 rounded-full relative overflow-hidden"
+            className="bg-gradient-to-r from-coral-400 via-peach-400 to-mint-400 h-3 rounded-full relative overflow-hidden"
             transition={{ duration: 0.5 }}
           >
             {/* Shimmer effect */}
@@ -370,7 +413,7 @@ const AIMatching = () => {
           </motion.div>
         </div>
 
-        <p className="text-gray-400 text-sm">
+        <p className="text-warm-600 text-sm font-medium">
           {Math.round(progress)}% Complete
         </p>
 
@@ -384,9 +427,9 @@ const AIMatching = () => {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="inline-block w-5 h-5 border-2 border-pink-400 border-t-transparent rounded-full mr-2"
+              className="inline-block w-5 h-5 border-2 border-coral-400 border-t-transparent rounded-full mr-2"
             />
-            <span className="text-gray-300">Finding your perfect match...</span>
+            <span className="text-warm-600">Finding your perfect match...</span>
           </motion.div>
         )}
 
@@ -395,11 +438,11 @@ const AIMatching = () => {
           {[...Array(20)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute text-pink-400/20"
-              initial={{ y: '100vh', x: Math.random() * window.innerWidth }}
+              className="absolute text-coral-300/20"
+              initial={{ y: '100vh', x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000) }}
               animate={{ 
                 y: '-10vh',
-                x: Math.random() * window.innerWidth,
+                x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
                 rotate: [0, 360]
               }}
               transition={{

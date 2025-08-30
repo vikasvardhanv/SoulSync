@@ -1,290 +1,139 @@
-# SoulSync Dating App - Full Stack Monorepo
+# SoulSync - AI-Powered Dating Platform
 
-A modern, AI-powered dating application built with React frontend and Node.js backend.
+SoulSync is a modern dating application that uses AI to create meaningful connections based on deep compatibility analysis.
 
-## 🏗️ Architecture Overview
+## Features
 
-```
-soulsync/
-├── frontend/          # React + Vite + TypeScript
-│   ├── src/          # React components and logic
-│   ├── package.json  # Frontend dependencies
-│   └── ...
-├── backend/           # Node.js + Express + PostgreSQL
-│   ├── src/          # Server code and API routes
-│   ├── package.json  # Backend dependencies
-│   └── ...
-└── package.json      # Monorepo root configuration
-```
+- **AI-Powered Matching**: Advanced compatibility analysis using personality and preference data
+- **Secure Authentication**: JWT-based authentication with email verification
+- **Real-time Messaging**: Chat with your matches in real-time
+- **Photo Management**: Upload and manage up to 6 profile photos
+- **Premium Subscriptions**: Enhanced features with crypto payment support
+- **Personality Quizzes**: Comprehensive compatibility assessments
+- **Mobile Responsive**: Works seamlessly on all devices
 
-## 🤔 Why Separate Frontend and Backend?
+## Tech Stack
 
-### **Different Technologies & Purposes**
+### Frontend
+- React 18 with TypeScript
+- Vite for build tooling
+- Tailwind CSS for styling
+- Zustand for state management
+- React Router for navigation
+- Framer Motion for animations
 
-| Frontend | Backend |
-|----------|---------|
-| **React** - UI Framework | **Node.js** - Server Runtime |
-| **Vite** - Build Tool | **Express** - Web Framework |
-| **TypeScript** - Type Safety | **PostgreSQL** - Database |
-| **Browser** - Client-side | **Server** - Server-side |
-| **User Interface** | **Business Logic** |
+### Backend
+- Node.js with Express
+- PostgreSQL database with Prisma ORM
+- JWT authentication
+- Cloudinary for image storage
+- Email service integration
+- Rate limiting and security middleware
 
-### **Why Two npm Processes?**
+## Getting Started
 
-1. **🏃‍♂️ Different Runtimes**
-   - Frontend: Runs in browser (Vite dev server)
-   - Backend: Runs on server (Node.js process)
+### Prerequisites
+- Node.js 18 or higher
+- PostgreSQL database
+- Cloudinary account (for image storage)
+- Email service credentials
 
-2. **🔄 Different Development Cycles**
-   - Frontend: Hot reload for UI changes
-   - Backend: Restart for server changes
+### Installation
 
-3. **🔧 Different Dependencies**
-   - Frontend: React, UI libraries
-   - Backend: Database, authentication, APIs
-
-4. **🌐 Different Ports**
-   - Frontend: `http://localhost:5173`
-   - Backend: `http://localhost:5001`
-
-## 🚀 Quick Start
-
-### **Option 1: Start Everything at Once**
+1. Clone the repository:
 ```bash
-# Install all dependencies
-npm run install:all
-
-# Setup backend (database, env)
-npm run setup
-
-# Start both frontend and backend
-npm run dev
-```
-
-### **Option 2: Start Separately**
-```bash
-# Terminal 1: Backend
-cd backend
-npm install
-npm run setup
-npm run dev
-
-# Terminal 2: Frontend
-cd frontend
-npm install
-npm run dev
-```
-
-## 📋 Available Scripts
-
-### **Root Level (Monorepo)**
-```bash
-npm run dev              # Start both frontend and backend
-npm run dev:frontend     # Start only frontend
-npm run dev:backend      # Start only backend
-npm run build            # Build both projects
-npm run setup            # Setup both projects
-npm run install:all      # Install all dependencies
-```
-
-### **Frontend Only**
-```bash
-cd frontend
-npm run dev              # Start Vite dev server
-npm run build            # Build for production
-npm run preview          # Preview production build
-npm run lint             # Run ESLint
-```
-
-### **Backend Only**
-```bash
-cd backend
-npm run dev              # Start with nodemon
-npm start                # Start production server
-npm run migrate          # Run database migrations
-npm run seed             # Seed database with questions
-npm run setup            # Interactive setup
-```
-
-## 🔧 Development Workflow
-
-### **1. Initial Setup**
-```bash
-# Clone and setup
-git clone <repository>
+git clone <repository-url>
 cd soulsync
-npm run install:all
-npm run setup
 ```
 
-### **2. Daily Development**
+2. Install dependencies:
 ```bash
-# Start both services
-npm run dev
-
-# Frontend: http://localhost:5173
-# Backend: http://localhost:5001
+npm run install-all
 ```
 
-### **3. Making Changes**
-- **Frontend changes**: Auto-reload in browser
-- **Backend changes**: Auto-restart with nodemon
-- **Database changes**: Run `npm run migrate`
+3. Set up environment variables:
 
-## 🌐 API Communication
+Create `.env` files in both `frontend` and `backend` directories with the required variables.
 
-### **Development**
-```
-Frontend (localhost:5173) 
-    ↓ HTTP requests
-Backend (localhost:5001)
-    ↓ Database queries
-PostgreSQL Database
-```
-
-### **Production**
-```
-Frontend (Static files)
-    ↓ HTTP requests
-Backend (API server)
-    ↓ Database queries
-PostgreSQL Database
-```
-
-## 📁 Project Structure
-
-```
-soulsync/
-├── frontend/                    # React Frontend
-│   ├── src/
-│   │   ├── components/         # React components
-│   │   ├── pages/             # Page components
-│   │   ├── hooks/             # Custom React hooks
-│   │   ├── services/          # API service calls
-│   │   ├── stores/            # State management
-│   │   └── utils/             # Utility functions
-│   ├── public/                # Static assets
-│   ├── package.json           # Frontend dependencies
-│   └── vite.config.ts         # Vite configuration
-│
-├── backend/                    # Node.js Backend
-│   ├── src/
-│   │   ├── routes/            # API route handlers
-│   │   ├── middleware/        # Express middleware
-│   │   ├── database/          # Database connection & migrations
-│   │   └── utils/             # Backend utilities
-│   ├── package.json           # Backend dependencies
-│   └── .env                   # Environment variables
-│
-└── package.json               # Monorepo configuration
-```
-
-## 🔐 Environment Variables
-
-### **Backend (.env)**
+**Backend `.env`:**
 ```env
-# Server
-PORT=5000
-NODE_ENV=development
-
-# Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/soulsync_db
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=soulsync_db
-DB_USER=username
-DB_PASSWORD=password
-
-# JWT
-JWT_SECRET=your-secret-key
-JWT_EXPIRES_IN=7d
-
-# External APIs
-OPENAI_API_KEY=your-openai-key
-PAYPAL_CLIENT_ID=your-paypal-id
+DATABASE_URL="your-postgresql-connection-string"
+JWT_SECRET="your-jwt-secret"
+JWT_REFRESH_SECRET="your-refresh-secret"
+CLOUDINARY_CLOUD_NAME="your-cloudinary-cloud-name"
+CLOUDINARY_API_KEY="your-cloudinary-api-key"
+CLOUDINARY_API_SECRET="your-cloudinary-api-secret"
+EMAIL_HOST="your-email-host"
+EMAIL_PORT=587
+EMAIL_USER="your-email-user"
+EMAIL_PASS="your-email-password"
 ```
 
-### **Frontend (.env)**
+**Frontend `.env`:**
 ```env
-VITE_API_URL=http://localhost:5001/api
-VITE_APP_NAME=SoulSync
+VITE_API_URL="http://localhost:5001/api"
 ```
 
-## 🚀 Deployment
-
-### **Development**
+4. Set up the database:
 ```bash
-npm run dev
+cd backend
+npx prisma migrate deploy
+npm run seed
 ```
 
-### **Production**
+5. Build the application:
 ```bash
-# Build both projects
-npm run build
+npm run build-frontend
+npm run build-backend
+```
 
-# Start production servers
+6. Start the production server:
+```bash
 npm start
 ```
 
-### **Docker Deployment**
-```bash
-# Build and run with Docker Compose
-docker-compose up --build
-```
+The application will be available at `http://localhost:5001`
 
-## 🤝 Why This Architecture?
+## Production Deployment
 
-### **✅ Benefits**
-- **Separation of Concerns**: UI logic separate from business logic
-- **Scalability**: Can scale frontend and backend independently
-- **Technology Flexibility**: Can use different tech stacks
-- **Team Development**: Frontend and backend teams can work independently
-- **Deployment Flexibility**: Deploy frontend and backend separately
+### Environment Setup
+- Set `NODE_ENV=production`
+- Configure production database
+- Set up proper CORS origins
+- Configure email service
+- Set up Cloudinary for image storage
 
-### **❌ Alternative: Single App**
-Some apps combine frontend and backend in one process, but this limits:
-- Technology choices
-- Scalability options
-- Team collaboration
-- Deployment flexibility
+### Security Considerations
+- Use strong JWT secrets
+- Configure rate limiting
+- Set up proper CORS policies
+- Use HTTPS in production
+- Implement proper error handling
 
-## 🆘 Common Issues
+## API Documentation
 
-### **Port Already in Use**
-```bash
-# Kill processes on ports
-lsof -ti:3000 | xargs kill -9  # Frontend
-lsof -ti:5000 | xargs kill -9  # Backend
-```
+The backend provides a RESTful API with the following main endpoints:
 
-### **Database Connection Issues**
-```bash
-# Check PostgreSQL
-brew services list | grep postgresql
-brew services start postgresql
-```
+- `/api/auth/*` - Authentication and user management
+- `/api/users/*` - User profiles and matching
+- `/api/images/*` - Photo upload and management
+- `/api/matches/*` - Match creation and management
+- `/api/messages/*` - Real-time messaging
+- `/api/payments/*` - Subscription and payment handling
+- `/api/questions/*` - Personality quiz system
 
-### **Dependencies Issues**
-```bash
-# Clean install
-rm -rf node_modules package-lock.json
-npm install
-```
+## Contributing
 
-## 📚 Next Steps
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-1. **Setup**: Run `npm run setup`
-2. **Development**: Run `npm run dev`
-3. **Database**: Run `npm run migrate && npm run seed`
-4. **Testing**: Run `npm test`
-5. **Deployment**: Run `npm run build`
+## License
 
-## 🎯 Summary
+This project is proprietary software. All rights reserved.
 
-**Why two npm processes?**
-- Frontend and backend are different applications
-- They run on different ports and technologies
-- They serve different purposes (UI vs API)
-- They can be developed and deployed independently
+## Support
 
-This architecture gives you maximum flexibility and scalability! 🚀 
+For support and questions, please contact the development team.

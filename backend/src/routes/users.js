@@ -115,7 +115,58 @@ router.put('/profile', authenticateToken, [
   }
 });
 
-// Get potential matches
+// Get potential matches (public endpoint, no auth required)
+router.get('/potential-matches', async (req, res) => {
+  try {
+    const { limit = 20, offset = 0 } = req.query;
+
+    // Get active verified users for public display
+    const potentialMatches = await prisma.user.findMany({
+      where: {
+        isActive: true,
+        isVerified: true,
+        age: {
+          not: null
+        }
+      },
+      select: {
+        id: true,
+        name: true,
+        age: true,
+        bio: true,
+        location: true,
+        interests: true,
+        photos: true,
+        createdAt: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: parseInt(limit),
+      skip: parseInt(offset)
+    });
+
+    res.json({
+      success: true,
+      data: {
+        matches: potentialMatches,
+        totalCount: potentialMatches.length,
+        pagination: {
+          limit: parseInt(limit),
+          offset: parseInt(offset)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get potential matches error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch potential matches'
+    });
+  }
+});
+
+// Get potential matches (authenticated users)
 router.get('/matches', authenticateToken, requireProfile, async (req, res) => {
   try {
     const userId = req.user.id;

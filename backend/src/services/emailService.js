@@ -5,14 +5,23 @@ import crypto from 'crypto';
 
 class EmailService {
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_APP_PASSWORD // Use app password for Gmail
-      },
-      secure: true
-    });
+    // Only create transporter if email credentials are provided
+    if (process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD) {
+      this.transporter = nodemailer.createTransporter({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_APP_PASSWORD
+        },
+        secure: true,
+        connectionTimeout: 10000, // 10 seconds
+        greetingTimeout: 10000, // 10 seconds
+        socketTimeout: 10000 // 10 seconds
+      });
+    } else {
+      console.warn('⚠️  Email service disabled - EMAIL_USER and EMAIL_APP_PASSWORD not configured');
+      this.transporter = null;
+    }
   }
 
   // Generate verification token
@@ -36,6 +45,12 @@ class EmailService {
 
   // Send verification email
   async sendVerificationEmail(email, name, token) {
+    // If no transporter is configured, skip email sending
+    if (!this.transporter) {
+      console.log(`⚠️  Email service disabled - verification email for ${email} would be sent in production`);
+      return true; // Return success to not block signup flow
+    }
+
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
     
     const mailOptions = {
@@ -50,7 +65,7 @@ class EmailService {
 
     try {
       await this.transporter.sendMail(mailOptions);
-      console.log(`Verification email sent to ${email}`);
+      console.log(`✅ Verification email sent to ${email}`);
       return true;
     } catch (error) {
       console.error('Error sending verification email:', error);

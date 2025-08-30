@@ -97,7 +97,6 @@ export const authAPI = {
 // Images API
 export const imagesAPI = {
   uploadSingle: (formData: FormData, onProgress?: (progress: number) => void) => {
-    console.log('Uploading single image with FormData:', formData);
     return api.post('/images/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress: (progressEvent) => {

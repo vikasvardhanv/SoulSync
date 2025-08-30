@@ -75,21 +75,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true, error: null });
     
     try {
-      console.log('Starting signup process...');
       const response = await authAPI.register(credentials);
       
       if (response.data.success) {
-        console.log('Signup successful:', response.data);
-        
         // Store tokens if provided
         const tokens = response.data.data?.tokens;
         if (tokens?.accessToken) {
           localStorage.setItem('accessToken', tokens.accessToken);
-          console.log('Access token stored');
         }
         if (tokens?.refreshToken) {
           localStorage.setItem('refreshToken', tokens.refreshToken);
-          console.log('Refresh token stored');
         }
         
         const userData = response.data.data.user;
@@ -99,8 +94,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isAuthenticated: true,
           error: null 
         });
-        
-        console.log('User data set in store:', userData);
       } else {
         throw new Error(response.data.message || 'Signup failed');
       }
@@ -126,20 +119,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true, error: null });
     
     try {
-      console.log('Starting signin process...');
       const response = await authAPI.login(credentials);
       
       if (response.data.success) {
-        console.log('Signin successful:', response.data);
-        
         // Store tokens
         const tokens = response.data.data.tokens;
         if (tokens?.accessToken && tokens?.refreshToken) {
           localStorage.setItem('accessToken', tokens.accessToken);
           localStorage.setItem('refreshToken', tokens.refreshToken);
-          console.log('Tokens stored successfully');
-        } else {
-          console.warn('Missing tokens in response');
         }
         
         const userData = response.data.data.user;
@@ -149,8 +136,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isAuthenticated: true,
           error: null
         });
-        
-        console.log('User signed in:', userData);
       } else {
         throw new Error(response.data.message || 'Login failed');
       }
@@ -178,7 +163,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const refreshToken = localStorage.getItem('refreshToken');
       if (refreshToken) {
-        console.log('Sending logout request to server...');
         await authAPI.logout({ refreshToken });
       }
     } catch (error) {
@@ -186,7 +170,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Continue with logout even if API call fails
     } finally {
       // Always clear local storage and state
-      console.log('Clearing tokens and user data...');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       
@@ -196,8 +179,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: false,
         error: null
       });
-      
-      console.log('User signed out successfully');
     }
   },
 
@@ -205,7 +186,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const token = localStorage.getItem('accessToken');
     
     if (!token) {
-      console.log('No access token found');
       set({ 
         user: null, 
         loading: false,
@@ -217,12 +197,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true, error: null });
     
     try {
-      console.log('Checking authentication status...');
       const response = await authAPI.getMe();
       
       if (response.data.success) {
         const userData = response.data.data.user;
-        console.log('Auth check successful:', userData);
         
         set({ 
           user: userData, 
@@ -231,7 +209,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           error: null
         });
       } else {
-        console.log('Auth check failed - invalid response');
         throw new Error('Invalid response from server');
       }
     } catch (error: any) {
@@ -239,7 +216,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       
       // If it's a 401 error, try to refresh the token
       if (error.response?.status === 401) {
-        console.log('Token expired, attempting refresh...');
         const refreshSuccess = await get().refreshToken();
         
         if (refreshSuccess) {
@@ -263,7 +239,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
       
       // Clear invalid tokens and user data
-      console.log('Clearing invalid auth data...');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       
@@ -285,12 +260,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true, error: null });
     
     try {
-      console.log('Updating profile:', updates);
       const response = await authAPI.updateProfile(updates);
       
       if (response?.data.success) {
         const updatedUser = { ...currentUser, ...response.data.data.user };
-        console.log('Profile updated successfully:', updatedUser);
         
         set({ 
           user: updatedUser, 
@@ -320,12 +293,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true, error: null });
     
     try {
-      console.log('Verifying email with token...');
       const response = await authAPI.verifyEmail(token);
       
       if (response.data.success) {
-        console.log('Email verified successfully');
-        
         // Update user verification status if user is logged in
         const currentUser = get().user;
         if (currentUser) {
@@ -360,11 +330,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true, error: null });
     
     try {
-      console.log('Resending verification email...');
       const response = await authAPI.resendVerification();
       
       if (response.data.success) {
-        console.log('Verification email sent successfully');
         set({ loading: false, error: null });
       } else {
         throw new Error(response.data.message || 'Failed to resend verification email');
@@ -389,11 +357,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true, error: null });
     
     try {
-      console.log('Sending forgot password request...');
       const response = await authAPI.forgotPassword({ email });
       
       if (response.data.success) {
-        console.log('Password reset email sent');
         set({ loading: false, error: null });
       } else {
         throw new Error(response.data.message || 'Failed to send reset email');
@@ -418,11 +384,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true, error: null });
     
     try {
-      console.log('Resetting password...');
       const response = await authAPI.resetPassword({ token, userId, newPassword });
       
       if (response.data.success) {
-        console.log('Password reset successfully');
         set({ loading: false, error: null });
       } else {
         throw new Error(response.data.message || 'Password reset failed');
@@ -447,11 +411,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true, error: null });
     
     try {
-      console.log('Changing password...');
       const response = await authAPI.changePassword({ currentPassword, newPassword });
       
       if (response.data.success) {
-        console.log('Password changed successfully');
         set({ loading: false, error: null });
       } else {
         throw new Error(response.data.message || 'Password change failed');
@@ -476,12 +438,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const refreshToken = localStorage.getItem('refreshToken');
     
     if (!refreshToken) {
-      console.log('No refresh token available');
       return false;
     }
 
     try {
-      console.log('Attempting to refresh access token...');
       const response = await authAPI.refreshToken({ refreshToken });
       
       if (response.data.success) {
@@ -491,10 +451,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', newRefreshToken);
         
-        console.log('Tokens refreshed successfully');
         return true;
       } else {
-        console.log('Token refresh failed - invalid response');
         return false;
       }
     } catch (error: any) {
@@ -544,7 +502,6 @@ if (!isInitialized) {
   
   // Check auth status when the app loads
   setTimeout(() => {
-    console.log('Initializing auth check...');
     useAuthStore.getState().checkAuth();
   }, 100);
 }

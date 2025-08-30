@@ -1,20 +1,31 @@
 {
   "version": 2,
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30
+    },
+    "api/upload.js": {
+      "maxDuration": 30
+    },
+    "api/test-upload.js": {
+      "maxDuration": 10
+    }
+  },
   "rewrites": [
     {
+      "source": "/api/test-upload",
+      "destination": "/api/test-upload.js"
+    },
+    {
       "source": "/api/images/upload",
-      "destination": "/api/simple-upload.js"
-    },
-    {
-      "source": "/api/auth/signup",
-      "destination": "/api/auth-signup.js"
-    },
-    {
-      "source": "/api/auth/login",
-      "destination": "/api/auth-login.js"
+      "destination": "/api/upload.js"
     },
     {
       "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/health",
       "destination": "/api/index.js"
     },
     {
@@ -23,6 +34,14 @@
     }
   ],
   "installCommand": "npm install && npm run build-frontend",
-  "buildCommand": "npm run build --workspace=backend",
-  "outputDirectory": "frontend/dist"
+  "buildCommand": "npm run build-backend",
+  "outputDirectory": "frontend/dist",
+  "env": {
+    "NODE_ENV": "production",
+    "DATABASE_URL": "postgres://41ad1dc9be4d79fa016829b50e2843b60021f1e925d0766712cf6ac359fb5658:sk_PmTdHGZVXUxVAexGZlGBm@db.prisma.io:5432/postgres?sslmode=require",
+    "PRISMA_DATABASE_URL": "postgres://41ad1dc9be4d79fa016829b50e2843b60021f1e925d0766712cf6ac359fb5658:sk_PmTdHGZVXUxVAexGZlGBm@db.prisma.io:5432/postgres?sslmode=require",
+    "JWT_SECRET": "lcgl06w7dcq7augpesgzsy",
+    "JWT_REFRESH_SECRET": "ni5bfuvuqfgxi1i79bc6l9",
+    "CORS_ORIGIN": "https://soulsync.solutions"
+  }
 }

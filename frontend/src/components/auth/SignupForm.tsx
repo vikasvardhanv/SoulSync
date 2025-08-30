@@ -1,4 +1,4 @@
-// frontend/src/components/auth/SignupForm.tsx - Fixed overlapping text issue
+// frontend/src/components/auth/SignupForm.tsx - Fixed version with proper onboarding flow
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
@@ -171,8 +171,9 @@ const SignupForm = () => {
       console.log('Sending signup payload:', payload);
       
       await signUp(payload);
-      toast.success('Account created successfully! Please check your email to verify your account.');
-      navigate('/login');
+      toast.success('Account created successfully! Let\'s set up your profile.');
+      // Navigate to personality quiz to start onboarding
+      navigate('/personality-quiz');
     } catch (error: any) {
       console.error('Signup error:', error);
       if (error.response?.data?.errors) {
