@@ -150,14 +150,41 @@ export default async function handler(req, res) {
         const saltRounds = 12;
         const passwordHash = await bcrypt.hash(body.password, saltRounds);
 
-        // Process optional arrays
+        // Check for large photos in registration request
+        if (Array.isArray(body.photos) && body.photos.length > 0) {
+          const hasLargePhotos = body.photos.some(photo => 
+            typeof photo === 'string' && photo.startsWith('data:image/')
+          );
+          
+          if (hasLargePhotos) {
+            return res.status(413).json({
+              success: false,
+              message: 'Photos are too large for registration. Please complete registration first, then upload photos.',
+              error: {
+                code: 'PAYLOAD_TOO_LARGE',
+                type: 'REGISTRATION_PHOTOS_TOO_LARGE',
+                limits: {
+                  registrationPayload: '4.5MB',
+                  singlePhoto: '5MB',
+                  maxPhotos: 6
+                },
+                solution: {
+                  step1: 'Complete registration without photos',
+                  step2: 'Upload photos one by one in the profile setup screen',
+                  uploadEndpoint: '/api/images/upload'
+                }
+              }
+            });
+          }
+        }
+
+        // Process optional arrays (non-photo data only)
         const processedInterests = Array.isArray(body.interests) 
           ? body.interests.filter(interest => interest && typeof interest === 'string' && interest.trim().length > 0)
           : [];
         
-        const processedPhotos = Array.isArray(body.photos) 
-          ? body.photos.filter(photo => photo && typeof photo === 'string' && photo.trim().length > 0)
-          : [];
+        // For registration, photos should be empty array - photos uploaded separately
+        const processedPhotos = [];
 
         // Create user in database
         const user = await db.user.create({
@@ -222,10 +249,23 @@ export default async function handler(req, res) {
               accessToken,
               refreshToken
             },
-            nextStep: {
-              type: 'email_verification',
-              message: 'Check your email and click the verification link to fully activate your account',
-              resend_link: '/auth/resend-verification'
+            nextSteps: {
+              primary: {
+                type: 'email_verification',
+                message: 'Check your email and click the verification link to fully activate your account',
+                resend_link: '/auth/resend-verification'
+              },
+              secondary: {
+                type: 'profile_setup',
+                message: 'Complete your profile by uploading photos',
+                action: 'redirect_to_profile_setup',
+                uploadInfo: {
+                  endpoint: '/api/images/upload',
+                  maxSize: '5MB per photo',
+                  maxPhotos: 6,
+                  supportedFormats: ['JPEG', 'PNG', 'WebP']
+                }
+              }
             }
           }
         });
