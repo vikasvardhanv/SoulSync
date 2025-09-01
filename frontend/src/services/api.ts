@@ -20,12 +20,63 @@ api.interceptors.response.use(
 );
 
 export async function uploadPhotos(files: File[]): Promise<string[]> {
-  const form = new FormData();
-  for (const f of files) form.append("files", f);
-  const { data } = await api.post<{ urls: string[] }>("/upload", form, {
-    headers: { "Content-Type": "multipart/form-data" }
-  });
-  return data.urls;
+  const urls: string[] = [];
+  
+  for (const file of files) {
+    try {
+      // Convert file to base64
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result;
+          if (typeof result === 'string') {
+            resolve(result);
+          } else {
+            reject(new Error('Failed to convert file to base64'));
+          }
+        };
+        reader.onerror = () => reject(new Error('File reading failed'));
+        reader.readAsDataURL(file);
+      });
+
+      // Get auth token
+      const token = localStorage.getItem('token');
+      
+      // Upload via our base64 API
+      const { data } = await api.post('/images/upload', {
+        image: base64Data,
+        filename: file.name,
+        mimetype: file.type
+      }, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      
+      if (data.success) {
+        urls.push(data.data.imageUrl);
+      } else {
+        // Fall back to base64 for immediate display if API fails
+        console.warn(`API upload failed for ${file.name}, using base64 fallback`);
+        urls.push(base64Data);
+      }
+    } catch (error) {
+      console.error(`Failed to process ${file.name}:`, error);
+      // Convert to base64 for local display as fallback
+      try {
+        const base64Data = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        urls.push(base64Data);
+      } catch (fallbackError) {
+        console.error(`Complete failure for ${file.name}:`, fallbackError);
+        throw new Error(`Cannot process file: ${file.name}`);
+      }
+    }
+  }
+  
+  return urls;
 }
 
 export async function signup(payload: {
