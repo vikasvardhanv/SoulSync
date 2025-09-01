@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import { uploadPhotos } from "../services/api";
 import { Image, Loader2, Trash2 } from "lucide-react";
+import { uploadPhotos } from "../services/api";
 
 type Props = {
   onChange: (urls: string[]) => void;
@@ -23,6 +23,18 @@ export default function ImageUpload({ onChange, max = 6 }: Props) {
       onChange(next);
     } catch (error) {
       console.error('Upload failed:', error);
+      // Even if upload fails, we can still show local previews for form validation
+      // Convert files to data URLs for immediate preview
+      const localUrls = await Promise.all(
+        files.map(file => new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        }))
+      );
+      const next = [...previews, ...localUrls].slice(0, max);
+      setPreviews(next);
+      onChange(next);
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";

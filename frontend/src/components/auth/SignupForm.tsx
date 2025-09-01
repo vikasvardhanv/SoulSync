@@ -4,8 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signup } from "../../services/api";
 import ImageUpload from "../ImageUpload";
-import ErrorBanner from "../ui/ErrorBanner";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 
 const Schema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -75,7 +74,16 @@ export default function SignupForm() {
         <h1 className="mb-1 text-2xl font-bold">Create your profile</h1>
         <p className="helper mb-6">Set the tone for better matches. Fields marked with * are required.</p>
 
-        <ErrorBanner message={serverError || undefined} />
+        {/* Error Banner */}
+        {serverError && (
+          <div role="alert" className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
+            <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
+            <div>
+              <p className="font-semibold text-red-800">Something went wrong</p>
+              <p className="text-sm text-red-700">{serverError}</p>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div className="grid gap-4 sm:grid-cols-2">
