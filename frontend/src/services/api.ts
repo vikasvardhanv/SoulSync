@@ -276,4 +276,19 @@ export const adminAPI = {
   getReports: () => api.get('/admin/reports'),
 };
 
+// Convenience functions for common operations
+export const signup = async (payload: {
+  name: string;
+  email: string;
+  password: string;
+  age: number;
+  bio?: string;
+  location?: string;
+  interests: string[];
+  photos: string[];
+}) => {
+  const response = await authAPI.register(payload);
+  return response.data;
+};
+
 export default api;
