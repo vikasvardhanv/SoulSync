@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Send, Heart, MapPin, Calendar, Smile, ArrowLeft, User, AlertCircle } from 'lucide-react';
+import { Send, Heart, MapPin, Calendar, Smile, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { messagesAPI } from '../services/api';
 import UserProfile from './UserProfile';
@@ -11,7 +11,6 @@ const ChatInterface = () => {
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [conversations, setConversations] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { state, dispatch } = useApp();
@@ -30,17 +29,6 @@ const ChatInterface = () => {
     "Perfect time to suggest meeting up! 💫"
   ];
 
-  // Fetch conversations from backend
-  const fetchConversations = async () => {
-    try {
-      const response = await messagesAPI.getConversations();
-      const { conversations } = response.data.data;
-      setConversations(conversations);
-    } catch (error) {
-      console.error('Error fetching conversations:', error);
-      setError('Failed to load conversations');
-    }
-  };
 
   // Fetch messages for current conversation
   const fetchMessages = async (userId: string) => {

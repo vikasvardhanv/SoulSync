@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Check, Star, Zap, Heart, CreditCard, TestTube, Bitcoin, Coins } from 'lucide-react';
+import { Lock, Check, Star, Zap, CreditCard, TestTube, Bitcoin, Coins } from 'lucide-react';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { useApp } from '../context/AppContext';
 import { paymentsAPI } from '../services/api';
@@ -31,9 +31,10 @@ const PaymentModal = () => {
       setPaymentError('');
       
       const response = await paymentsAPI.createPayment({
-        amount: 10.00,
-        currency: 'USD',
-        description: 'SoulSync AI Matchmaking - Limited Launch Offer'
+        price_amount: 10.00,
+        price_currency: 'USD',
+        pay_currency: 'USD',
+        order_description: 'SoulSync AI Matchmaking - Limited Launch Offer'
       });
 
       const { payment } = response.data.data;
@@ -117,11 +118,10 @@ const PaymentModal = () => {
       
       // Create subscription via backend
       await paymentsAPI.createPayment({
-        amount: 10.00,
-        currency: 'USD',
-        description: 'SoulSync AI Matchmaking - Limited Launch Offer',
-        provider: 'paypal',
-        providerId: details.id
+        price_amount: 10.00,
+        price_currency: 'USD',
+        pay_currency: 'USD',
+        order_description: 'SoulSync AI Matchmaking - Limited Launch Offer'
       });
       
       console.log('PayPal payment completed:', details);

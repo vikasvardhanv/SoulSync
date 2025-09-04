@@ -292,3 +292,12 @@ export const signup = async (payload: {
 };
 
 export default api;
+
+export const uploadPhotos = async (files: File[]) => {
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append("images", file);
+  });
+  const response = await imagesAPI.uploadMultiple(formData);
+  return response.data.data.map((image: any) => image.imageUrl);
+};

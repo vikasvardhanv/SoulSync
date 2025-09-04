@@ -25,6 +25,8 @@ interface Match {
   interests: string[];
   compatibility: number;
   photo: string;
+  photos?: string[];
+  location?: string;
 }
 
 interface AppState {
@@ -59,7 +61,8 @@ type AppAction =
   | { type: 'ACCEPT_MATCH'; payload: Match }
   | { type: 'REJECT_MATCH'; payload: Match }
   | { type: 'RESET_DAILY_MATCHES' }
-  | { type: 'ADD_MESSAGE'; payload: { senderId: string; content: string; } };
+  | { type: 'SET_MESSAGES'; payload: Array<{ id: string; senderId: string; content: string; timestamp: Date; }> }
+  | { type: 'ADD_MESSAGE'; payload: { senderId: string; content: string; timestamp?: Date; } };
 
 const initialState: AppState = {
   user: null,
@@ -131,6 +134,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
         lastMatchDate: new Date().toDateString(),
         rejectedMatches: []
       };
+    case 'SET_MESSAGES':
+      return {
+        ...state,
+        messages: action.payload
+      };
     case 'ADD_MESSAGE':
       return {
         ...state,
@@ -140,7 +148,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
             id: Date.now().toString(),
             senderId: action.payload.senderId,
             content: action.payload.content,
-            timestamp: new Date()
+            timestamp: action.payload.timestamp || new Date()
           }
         ]
       };

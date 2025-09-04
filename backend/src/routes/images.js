@@ -15,7 +15,7 @@ const upload = multer({
   storage: storage,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit (smaller for database storage)
-    files: 1
+    files: 6 // Allow up to 6 files
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -35,6 +35,53 @@ const compressImage = (buffer, mimetype) => {
   // You could add image compression here later if needed
   return buffer;
 };
+
+// Upload multiple images - database storage
+router.post('/upload-multiple', optionalAuth, (req, res) => {
+  upload.array('images', 6)(req, res, async (err) => {
+    if (err) {
+      // Handle multer and other errors
+      return res.status(500).json({ success: false, message: err.message });
+    }
+
+    try {
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ success: false, message: 'No image files provided' });
+      }
+
+      const uploadedImages = [];
+      for (const file of req.files) {
+        const compressedBuffer = compressImage(file.buffer, file.mimetype);
+        const base64Image = compressedBuffer.toString('base64');
+        const dataUrl = `data:${file.mimetype};base64,${base64Image}`;
+
+        const savedImage = await prisma.image.create({
+          data: {
+            filename: file.originalname,
+            mimetype: file.mimetype,
+            size: file.size,
+            data: base64Image,
+            userId: req.user?.id || null
+          }
+        });
+        uploadedImages.push({
+            imageId: savedImage.id,
+            imageUrl: dataUrl
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Images uploaded successfully',
+        data: uploadedImages
+      });
+
+    } catch (error) {
+      console.error('Image processing error:', error);
+      res.status(500).json({ success: false, message: 'Failed to process uploaded images' });
+    }
+  });
+});
 
 // Upload single image - database storage
 router.post('/upload', optionalAuth, (req, res) => {

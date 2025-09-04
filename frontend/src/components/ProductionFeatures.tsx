@@ -38,7 +38,16 @@ const ProductionFeatures = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const features = {
+  const features: Record<string, {
+    title: string;
+    icon: any;
+    items: Array<{
+      title: string;
+      description: string;
+      icon: any;
+      status: string;
+    }>;
+  }> = {
     analytics: {
       title: "Behavioral Analytics & ML Pipeline",
       icon: BarChart3,
